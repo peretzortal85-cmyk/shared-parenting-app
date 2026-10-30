@@ -150,11 +150,7 @@ def render():
     if 'holiday_selected_year' not in st.session_state:
         st.session_state['holiday_selected_year']=int(requested) if str(requested).isdigit() and int(requested) in years else 2027
     year=st.session_state['holiday_selected_year']
-    with st.popover(f'📅 שנת תוכנית: {year}',use_container_width=True):
-        for choice in years:
-            if st.button(str(choice),key=f'year_nav_{choice}',use_container_width=True):
-                st.session_state['holiday_selected_year']=choice
-                st.rerun()
+    year=st.selectbox('שנת תוכנית', years, key='holiday_selected_year')
     plans=load()
     key=str(year)
     if key not in plans:
@@ -258,17 +254,29 @@ def render():
             f'לאחר שתעבור על כל התוכנית, אנא השב:\n'
             f'✅ אני מאשר את תוכנית החגים לשנת {year} (גרסה {plan["revision"]})\n'
             f'❌ לא מאשר — השינויים שאני מבקש: __________')
-        st.markdown('**איך שולחים לרועי את האקסל ויוצרים סקר בוואטסאפ?**')
-        st.write('1. הורידי את האקסל המעודכן באמצעות הכפתור שמעל.')
-        st.write('2. פתחי את השיחה עם רועי בוואטסאפ וצרפי את קובץ האקסל דרך 📎 מסמך.')
-        st.write('3. באותה שיחה צרי סקר (📎 ← סקר) עם השאלה והאפשרויות הבאות:')
-        st.text_input('שאלת הסקר — להעתקה',value=f'האם אתה מאשר את תוכנית החגים לשנת {year} (גרסה {plan["revision"]})?',key=f'poll_q_{year}')
-        st.text_input('אפשרות 1 — להעתקה',value=f'✅ אני מאשר את תוכנית החגים לשנת {year}',key=f'poll_yes_{year}')
-        st.text_input('אפשרות 2 — להעתקה',value='❌ לא מאשר — אבקש שינויים',key=f'poll_no_{year}')
-        st.caption('בסקר WhatsApp בטלי את האפשרות "אפשר לבחור תשובות מרובות", כדי שרועי יבחר רק תשובה אחת. אם אינו מאשר, בקשי שיכתוב בשיחה את השינויים שהוא מבקש.')
-        st.link_button('💬 פתיחת WhatsApp עם הודעת ליווי (ללא קובץ מצורף)',
-            f'https://wa.me/?text={quote(f"רועי, מצורף קובץ תוכנית החגים לשנת {year}, לעיונך ולאישורך. לאחר שתעבור על כל התוכנית, אנא השב בסקר המצורף.",safe="")}',use_container_width=True)
-        st.info('חשוב: WhatsApp אינו מאפשר לאתר Streamlit ליצור סקר בשיחה או לצרף אוטומטית קובץ אקסל דרך קישור רגיל. לכן את הקובץ ואת הסקר שולחים מתוך WhatsApp. תוצאות הסקר יופיעו בשיחה, אך לא ייקלטו אוטומטית באפליקציה.')
+        # Native mobile sharing can attach a file and message in one user action.
+        # Browser/OS must support Web Share Level 2 and allow sharing in this context.
+        import base64
+        import streamlit.components.v1 as components
+        payload=base64.b64encode(file_bytes).decode('ascii')
+        share_html=f"""<!doctype html><html lang="he" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{{margin:0;font-family:Arial,sans-serif;direction:rtl}}button{{width:100%;padding:13px;border:0;border-radius:9px;background:#16a34a;color:white;font-weight:bold;font-size:16px}}#status{{font-size:13px;color:#444;margin-top:7px}}</style><button id="share">📲 שיתוף האקסל וההודעה לוואטסאפ</button><div id="status"></div><script>
+        const encoded={payload!r}, filename={filename!r}, message={approval_text!r};
+        document.getElementById('share').addEventListener('click',async()=>{{
+          const status=document.getElementById('status');
+          try {{
+            const binary=atob(encoded);const bytes=new Uint8Array(binary.length);
+            for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+            const file=new File([bytes],filename,{{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}});
+            if(!navigator.share || !navigator.canShare || !navigator.canShare({{files:[file]}})){{
+              status.textContent='המכשיר או הדפדפן אינם תומכים בשיתוף קובץ ישיר מכאן. הורידי את האקסל וצרפי אותו ידנית בוואטסאפ.';return;
+            }}
+            await navigator.share({{files:[file],text:message}});
+            status.textContent='חלונית השיתוף נסגרה. בדקי בוואטסאפ שהקובץ וההודעה אכן נשלחו.';
+          }}catch(e){{if(e.name!=='AbortError')status.textContent='השיתוף הישיר נחסם בדפדפן. הורידי את האקסל וצרפי אותו ידנית בוואטסאפ.';}}
+        }});
+        </script></html>"""
+        components.html(share_html,height=96)
+        st.caption('בטלפון: לחצי על שיתוף ובחרי WhatsApp ואת רועי. השיתוף תלוי בתמיכת הדפדפן; אם לא נפתח, הורידי את האקסל וצרפי אותו בוואטסאפ. אין יצירת סקר.')
         if st.button('🔄 הכנת גרסה חדשה לשליחה חוזרת',key=f'whatsapp_resend_{year}'):
             plan['revision']+=1
             plan['status']='draft'

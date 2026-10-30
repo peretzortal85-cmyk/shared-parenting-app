@@ -48,6 +48,15 @@ h1,h2,h3,p{text-align:right;overflow-wrap:break-word}
 [data-testid="stSelectbox"] [data-baseweb="select"] input {direction:rtl!important;text-align:right!important;}
 [data-baseweb="popover"] [role="listbox"], [data-baseweb="popover"] [role="option"], [data-baseweb="menu"] [role="option"] {direction:rtl!important;text-align:right!important;}
 [data-baseweb="popover"] [role="option"] > div, [data-baseweb="popover"] [role="option"] span {direction:rtl!important;text-align:right!important;}
+
+/* RTL selection boxes and pop-up options, including portal rendered outside the widget. */
+[data-testid="stSelectbox"] {width:100%!important;max-width:100%!important;direction:rtl!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] > div {direction:rtl!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"] {direction:rtl!important;text-align:right!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"] > div {text-align:right!important;direction:rtl!important;flex:1!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"] span {text-align:right!important;direction:rtl!important;display:block!important;width:100%!important;}
+[data-baseweb="popover"] [role="option"], [data-baseweb="menu"] [role="option"], [role="listbox"] [role="option"] {direction:rtl!important;text-align:right!important;justify-content:flex-start!important;}
+[data-baseweb="popover"] [role="option"] > div, [role="listbox"] [role="option"] > div {direction:rtl!important;text-align:right!important;width:100%!important;}
 </style>''',unsafe_allow_html=True)
 
 DATA_FILE=Path(__file__).with_name('data.json')
@@ -143,11 +152,7 @@ st.markdown("""<style>
 </style>""",unsafe_allow_html=True)
 if st.session_state.get('main_page') not in pages:
     st.session_state['main_page']=pages[0]
-with st.popover('📂 בחרי קטגוריה: '+st.session_state['main_page'],use_container_width=True):
-    for i, item in enumerate(pages):
-        if st.button(item,key=f'page_nav_{i}',use_container_width=True):
-            st.session_state['main_page']=item
-            st.rerun()
+st.selectbox('בחרי קטגוריה', pages, key='main_page')
 page=st.session_state['main_page']
 st.caption('גרסת ניסוי — קבלות חדשות נשמרות זמנית בלבד, ללא חשבונות משתמשים')
 st.divider()
