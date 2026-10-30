@@ -60,13 +60,24 @@ def alternate(p):return {'אב':'אם','אם':'אב'}.get(p,p)
 def next_year_date(s,target):
     original=date.fromisoformat(s)
     h=dates.GregorianDate(original.year,original.month,original.day).to_heb()
-    # The same Hebrew calendar day in the following civil year; Adar leap cases need review.
     hyear=h.year+(target-2027)
+    source_leap=dates.HebrewDate(h.year,1,1).leap
+    target_leap=dates.HebrewDate(hyear,1,1).leap
     month=h.month
-    try:return dates.HebrewDate(hyear,month,h.day).to_pydate().isoformat()
+    # Pyluach: Adar=12 in common years; Adar I=12, Adar II=13 in leap years.
+    # Purim (Adar II) must map to ordinary Adar in a non-leap year.
+    if source_leap and not target_leap and month==13:
+        month=12
+    elif not source_leap and target_leap and month==12:
+        month=13
+    try:
+        return dates.HebrewDate(hyear,month,h.day).to_pydate().isoformat()
     except ValueError:
-        try:return dates.HebrewDate(hyear,month, min(h.day,29)).to_pydate().isoformat()
+        # A 30th day can disappear in the target year. Flag via fallback;
+        # the resulting plan remains a draft requiring review.
+        try:return dates.HebrewDate(hyear,month,min(h.day,29)).to_pydate().isoformat()
         except ValueError:return original.replace(year=target).isoformat()
+
 
 def new_plan(original,year):
     return {'revision':1,'status':'draft','approved_revision':None,'approved_rows':None,'sent_revision':None,'approval_token':None,'history':[], 'rows':[{**r,'date':next_year_date(r['date'],year),'parent':alternate(r['parent']) if (year-2027)%2 else r['parent']} for r in original]}
@@ -130,10 +141,24 @@ def render():
                         save(plans);st.success('נשמרה גרסה חדשה. יש לשלוח אותה מחדש לאישור.');st.rerun()
                     else:st.info('לא זוהו שינויים.')
                 except (ValueError,TypeError) as e:st.error(f'תאריך או הורה לא תקין: {e}')
-    display=[{'חג':r['holiday'],'תאריך':date.fromisoformat(r['date']).strftime('%d/%m/%Y'),'יום (במקור)':r.get('day_label','') if year==2027 else '', 'חלק החג':r['part'],'שהות':('אצל רועי' if r['parent']=='אב' else 'אצל אורטל' if r['parent']=='אם' else r['parent']),'הערות':r['notes']} for r in rows]
+    weekdays=['יום שני','יום שלישי','יום רביעי','יום חמישי','יום שישי','יום שבת','יום ראשון']
+    # Correct pre-v12 automatically generated drafts without touching edited/approved plans.
+    if year!=2027 and plan.get('revision')==1 and plan.get('status')=='draft' and not any(h.get('action')=='edit' for h in plan.get('history',[])):
+        corrected=new_plan(original,year)['rows']
+        if any(r.get('date')!=c.get('date') for r,c in zip(rows,corrected)) and len(rows)==len(corrected):
+            plan['rows']=corrected
+            plan['approval_token']=None
+            plan['sent_revision']=None
+            plan.setdefault('history',[]).append({'action':'automatic_calendar_correction_v12','at':datetime.now().isoformat(timespec='seconds')})
+            plans[str(year)]=plan
+            save(plans)
+            rows=corrected
+            st.warning('תאריכי הטיוטה חושבו מחדש לפי הלוח העברי, כולל תיקון אדר ב׳. יש לבדוק את התוכנית לפני שליחה לאישור.')
+
+    display=[{'חג':r['holiday'],'תאריך':date.fromisoformat(r['date']).strftime('%d/%m/%Y'),'יום':r.get('day_label','') if year==2027 else weekdays[date.fromisoformat(r['date']).weekday()], 'חלק החג':r['part'],'שהות':('אצל רועי' if r['parent']=='אב' else 'אצל אורטל' if r['parent']=='אם' else r['parent']),'הערות':r['notes']} for r in rows]
     # Render in an explicit RTL HTML table: holiday first, date second, notes last.
     # Unlike st.dataframe, browser RTL layout cannot reverse the visible column order.
-    headings=['חג','תאריך','יום (במקור)','חלק החג','שהות','הערות']
+    headings=['חג','תאריך','יום','חלק החג','שהות','הערות']
     def safe(v):
         return html.escape(str(v if v is not None else '')).replace('\n','<br>')
     head=''.join(f'<th scope="col">{safe(h)}</th>' for h in headings)
@@ -141,15 +166,15 @@ def render():
     st.markdown(f"""
     <style>
     .holiday-scroll {{overflow-x:auto;max-width:100%;margin:0.8rem 0 1.2rem}}
-    .holiday-table {{direction:rtl;border-collapse:collapse;width:100%;min-width:760px;text-align:right;table-layout:fixed}}
+    .holiday-table {{direction:rtl;border-collapse:collapse;width:100%;min-width:900px;text-align:right;table-layout:fixed}}
     .holiday-table th,.holiday-table td {{border:1px solid #d8dee5;padding:10px 12px;vertical-align:top;white-space:normal;overflow-wrap:anywhere;word-break:normal}}
     .holiday-table th {{background:#edf2f7;color:#15212d;font-weight:700}}
     .holiday-table tr:nth-child(even) {{background:rgba(130,140,160,.07)}}
-    .holiday-table th:nth-child(1) {{width:17%}}
-    .holiday-table th:nth-child(2) {{width:13%}}
-    .holiday-table th:nth-child(3) {{width:11%}}
-    .holiday-table th:nth-child(4) {{width:15%}}
-    .holiday-table th:nth-child(5) {{width:14%}}
+    .holiday-table th:nth-child(1) {{width:15%}}
+    .holiday-table th:nth-child(2),.holiday-table td:nth-child(2) {{width:17%;min-width:120px;white-space:nowrap;overflow-wrap:normal}}
+    .holiday-table th:nth-child(3) {{width:12%}}
+    .holiday-table th:nth-child(4) {{width:13%}}
+    .holiday-table th:nth-child(5) {{width:13%}}
     .holiday-table th:nth-child(6) {{width:30%}}
     </style>
     <div class="holiday-scroll"><table class="holiday-table" dir="rtl"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>
