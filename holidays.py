@@ -103,56 +103,59 @@ def ics(rows,year):
 
 def render():
     st.header('📅 חגים והסדרים')
+    st.markdown('<style>[data-testid="stSelectbox"],[data-testid="stTextInput"]{direction:rtl;text-align:right}[data-testid="stSelectbox"] label,[data-testid="stTextInput"] label{text-align:right;width:100%}div[data-baseweb="select"]>div{direction:rtl;text-align:right}</style>',unsafe_allow_html=True)
     st.caption('טבלת 2027 מוצגת מתוך קובץ האקסל המקורי ללא שינוי. שנים חדשות הן הצעות שניתנות לעריכה ולאישור.')
     original=read_original()
     requested=st.query_params.get('holiday_year','2027')
     years=[2027,2028,2029,2030,2031,2032]
     year=st.selectbox('שנת תוכנית',years,index=years.index(int(requested)) if requested.isdigit() and int(requested) in years else 0,key='holiday_year')
     plans=load()
-    if year==2027:
-        st.info('שנת בסיס: הטבלה מוצגת מהאקסל המקורי ללא שינוי. ניתן לשלוח עותק של התוכנית כולה לאישור רועי.')
-        rows=original
-        plan=plans.get('2027')
-        if plan is None:
-            if st.button('📨 הכנת תוכנית 2027 לשליחה לרועי',type='primary'):
-                plans['2027']={'revision':1,'status':'draft','approved_revision':None,'approved_rows':None,'sent_revision':None,'approval_token':None,'history':[],'rows':[dict(r) for r in original]}
+    key=str(year)
+    if key not in plans:
+        if year==2027:
+            plans[key]={'revision':1,'status':'draft','approved_revision':None,'approved_rows':None,'sent_revision':None,'approval_token':None,'history':[],'rows':[dict(r) for r in original]}
+            save(plans)
+        else:
+            st.warning(f'טרם נוצרה תוכנית {year}. היא תתבסס על חלוקת 2027 ותהפוך את ההורים לסירוגין. יש לבדוק את התאריכים לפני שליחה.')
+            if st.button(f'➕ יצירת טיוטת {year}',type='primary'):
+                plans[key]=new_plan(original,year)
                 save(plans)
                 st.rerun()
-        else:
-            # Always use the original spreadsheet for the base year; no editing of source.
-            plan['rows']=[dict(r) for r in original]
-            statuses={'draft':'טיוטה','sent':'נשלחה לעיון — ממתינה לאישור','approved':'תוכנית מאושרת','changes':'נדרשים תיקונים'}
-            st.write(f"**מצב:** {statuses.get(plan['status'],plan['status'])} | **גרסה:** {plan['revision']}")
-            st.warning('אישור הקישור עדיין אינו מאמת את זהות רועי; השמירה בשרת Streamlit זמנית.')
-    else:
-        key=str(year)
-        if key not in plans:
-            st.warning(f'טרם נוצרה תוכנית {year}. היא תתבסס על חלוקת 2027 ותהפוך את ההורים לסירוגין. יש לבדוק במיוחד תאריכים, חגים חופפים ושבתות לפני שליחה.')
-            if st.button(f'➕ יצירת טיוטת {year}',type='primary'):
-                plans[key]=new_plan(original,year);save(plans);st.rerun()
             return
-        plan=plans[key];rows=plan['rows']
-        statuses={'draft':'טיוטה','sent':'נשלחה לעיון — ממתינה לאישור','approved':'תוכנית מאושרת','changes':'נדרשים תיקונים'}
-        st.write(f"**מצב:** {statuses.get(plan['status'],plan['status'])} | **גרסה:** {plan['revision']}")
-        st.warning('הנתונים נשמרים כרגע בקובץ מקומי בשרת. בענן Streamlit הם עלולים להימחק באתחול. לפני שימוש מחייב יש להוסיף בסיס נתונים והזדהות לשני ההורים.')
-        with st.expander('✏️ עריכת תוכנית החגים',expanded=False):
-            st.caption('ערכי את השורות ושמרי. כל שמירה יוצרת גרסה חדשה ומבטלת את תוקף האישור לגבי השינויים החדשים.')
-            with st.form('holiday_edit'):
-                edited=st.data_editor([{'מזהה':r['id'],'חג':r['holiday'],'תאריך':r['date'],'חלק החג':r['part'],'הורה':r['parent'],'הערות':r['notes']} for r in rows],hide_index=True,use_container_width=True,num_rows='fixed',disabled=['מזהה','חג'],column_config={'הורה':st.column_config.SelectboxColumn('הורה',options=['אב','אם'],required=True),'תאריך':st.column_config.TextColumn('תאריך YYYY-MM-DD',required=True),'הערות':st.column_config.TextColumn('הערות',width='large')},row_height=90)
-                submit=st.form_submit_button('💾 שמירת שינויים',type='primary')
-            if submit:
-                try:
-                    updated=[]
-                    for r in edited.to_dict('records'):
-                        d=date.fromisoformat(str(r['תאריך']))
-                        if r['הורה'] not in ['אב','אם']:raise ValueError('יש לבחור הורה תקין')
-                        updated.append({'id':r['מזהה'],'holiday':r['חג'],'date':d.isoformat(),'day_label':'','part':r['חלק החג'],'parent':r['הורה'],'notes':r['הערות']})
-                    if updated!=rows:
-                        plan['rows']=updated;plan['revision']+=1;plan['status']='draft';plan['approval_token']=None;plan['sent_revision']=None
-                        plan['history'].append({'action':'edit','revision':plan['revision'],'at':datetime.now().isoformat(timespec='seconds')})
-                        save(plans);st.success('נשמרה גרסה חדשה. יש לשלוח אותה מחדש לאישור.');st.rerun()
-                    else:st.info('לא זוהו שינויים.')
-                except (ValueError,TypeError) as e:st.error(f'תאריך או הורה לא תקין: {e}')
+    plan=plans[key]
+    rows=plan['rows']
+    statuses={'draft':'טיוטה','sent':'נשלחה לעיון','approved':'תוכנית מאושרת','changes':'נדרשים תיקונים'}
+    st.write(f"**מצב:** {statuses.get(plan['status'],plan['status'])} | **גרסה:** {plan['revision']}")
+    st.warning('שינויים נשמרים בקובץ מקומי בשרת Streamlit, ועלולים להיעלם לאחר אתחול או פריסה מחדש. לשמירה קבועה דרוש בסיס נתונים.')
+    with st.expander('✏️ עריכת תוכנית החגים',expanded=False):
+        st.caption('העריכות נשמרות בעותק התוכנית, ולא משנות את קובץ Excel המקורי. אחרי שינוי יש לשלוח את הגרסה החדשה לרועי.')
+        with st.form(f'holiday_edit_{year}',clear_on_submit=False):
+            editable=[{'מזהה':r['id'],'חג':r['holiday'],'תאריך':r['date'],'חלק החג':r['part'],'הורה':r['parent'],'הערות':r['notes']} for r in rows]
+            edited=st.data_editor(editable,key=f'holiday_editor_{year}_{plan["revision"]}',hide_index=True,use_container_width=True,num_rows='fixed',disabled=['מזהה'],column_config={'חג':st.column_config.TextColumn('חג',width='medium'),'הורה':st.column_config.SelectboxColumn('הורה',options=['אב','אם'],required=True),'תאריך':st.column_config.TextColumn('תאריך YYYY-MM-DD',required=True),'הערות':st.column_config.TextColumn('הערות',width='large')},row_height=90)
+            submit=st.form_submit_button('💾 שמירת שינויים',type='primary')
+        if submit:
+            try:
+                records=edited.to_dict('records') if hasattr(edited,'to_dict') else list(edited)
+                updated=[]
+                for r in records:
+                    d=date.fromisoformat(str(r['תאריך']))
+                    if r['הורה'] not in ['אב','אם']:raise ValueError('יש לבחור הורה תקין')
+                    updated.append({'id':r['מזהה'],'holiday':str(r['חג']),'date':d.isoformat(),'day_label':('' if year!=2027 else next((x.get('day_label','') for x in rows if x['id']==r['מזהה']),'')),'part':str(r['חלק החג']),'parent':r['הורה'],'notes':str(r['הערות'])})
+                if updated!=rows:
+                    plan['rows']=updated
+                    plan['revision']+=1
+                    plan['status']='draft'
+                    plan['approval_token']=None
+                    plan['sent_revision']=None
+                    plan.setdefault('history',[]).append({'action':'edit','revision':plan['revision'],'at':datetime.now().isoformat(timespec='seconds')})
+                    plans[key]=plan
+                    save(plans)
+                    st.session_state['holiday_save_notice']=f'השינויים נשמרו בגרסה {plan["revision"]}. יש לשלוח אותה לרועי לאישור.'
+                    st.rerun()
+                else:st.info('לא זוהו שינויים.')
+            except (ValueError,TypeError) as e:st.error(f'תאריך או הורה לא תקין: {e}')
+    if st.session_state.get('holiday_save_notice'):
+        st.success(st.session_state.pop('holiday_save_notice'))
     weekdays=['יום שני','יום שלישי','יום רביעי','יום חמישי','יום שישי','יום שבת','יום ראשון']
     # Correct pre-v12 automatically generated drafts without touching edited/approved plans.
     if year!=2027 and plan.get('revision')==1 and plan.get('status')=='draft' and not any(h.get('action')=='edit' for h in plan.get('history',[])):
@@ -167,7 +170,10 @@ def render():
             rows=corrected
             st.warning('תאריכי הטיוטה חושבו מחדש לפי הלוח העברי, כולל תיקון אדר ב׳. יש לבדוק את התוכנית לפני שליחה לאישור.')
 
-    display=[{'חג':r['holiday'],'תאריך':date.fromisoformat(r['date']).strftime('%d/%m/%Y'),'יום':r.get('day_label','') if year==2027 else weekdays[date.fromisoformat(r['date']).weekday()], 'חלק החג':r['part'],'שהות':('אצל רועי' if r['parent']=='אב' else 'אצל אורטל' if r['parent']=='אם' else r['parent']),'הערות':r['notes']} for r in rows]
+    search=st.text_input('🔎 חיפוש חג',placeholder='הקלידי שם חג, למשל פורים',key=f'holiday_search_{year}')
+    visible_rows=[r for r in rows if not search.strip() or search.strip().casefold() in str(r.get('holiday','')).casefold() or search.strip().casefold() in str(r.get('part','')).casefold()]
+    st.caption(f'מוצגות {len(visible_rows)} מתוך {len(rows)} שורות')
+    display=[{'חג':r['holiday'],'תאריך':date.fromisoformat(r['date']).strftime('%d/%m/%Y'),'יום':r.get('day_label','') if year==2027 else weekdays[date.fromisoformat(r['date']).weekday()], 'חלק החג':r['part'],'שהות':('אצל רועי' if r['parent']=='אב' else 'אצל אורטל' if r['parent']=='אם' else r['parent']),'הערות':r['notes']} for r in visible_rows]
     # Render in an explicit RTL HTML table: holiday first, date second, notes last.
     # Unlike st.dataframe, browser RTL layout cannot reverse the visible column order.
     headings=['חג','תאריך','יום','חלק החג','שהות','הערות']
@@ -194,19 +200,33 @@ def render():
     if year==2027:
         st.download_button('📎 הורדת קובץ האקסל המקורי ללא שינוי',SOURCE.read_bytes(),file_name='טבלת סידור חגים 2027.xlsx')
     if plan is not None:
-        st.subheader('📨 שליחת כל התוכנית לרועי לאישור')
-        st.caption('WhatsApp פותח הודעה מוכנה. לאחר פתיחת ההודעה צריך ללחוץ שליחה בוואטסאפ בעצמך.')
-        if st.button('🔗 הכנת קישור חדש לאישור הגרסה הנוכחית',type='primary'):
-            plan['approval_token']=uuid.uuid4().hex;plan['sent_revision']=plan['revision'];plan['status']='sent'
-            plan['history'].append({'action':'link_prepared','revision':plan['revision'],'at':datetime.now().isoformat(timespec='seconds')})
-            save(plans);st.rerun()
-        if plan.get('approval_token') and plan.get('sent_revision')==plan['revision']:
-            base='https://4ktxfrnib3.streamlit.app/'
-            link=f"{base}?holiday_year={year}&approval={plan['approval_token']}"
-            message=f'רועי, מצורפת תוכנית החגים לשנת {year} (גרסה {plan["revision"]}) לעיונך ולאישור כל התוכנית. אפשר לפתוח, לבדוק את כל התאריכים וחלוקת השהות ולבחור אישור או בקשת תיקונים: {link}'
-            st.link_button('📱 פתיחת WhatsApp עם הודעה מוכנה',f'https://wa.me/?text={quote(message)}',use_container_width=True)
-            st.code(link,language=None)
-            st.caption('הקישור הוא קישור גישה אישי. כל מי שמחזיק בו יכול לבצע פעולה בשלב הניסוי; עדיין אין אימות זהות של רועי.')
+        st.subheader('📨 שליחת תוכנית החגים לרועי בוואטסאפ')
+        st.caption('ללא הרשמה וללא קישור לאפליקציה: רועי יקבל את התאריכים והחלוקה בהודעת WhatsApp וישיב לך באותה שיחה.')
+        plan_rows=plan['rows']
+        lines=[f'תוכנית חגים {year} | גרסה {plan["revision"]}', '', 'רועי, מצורפת תוכנית החגים המלאה לעיונך ולאישורך:', '']
+        for r in plan_rows:
+            d=date.fromisoformat(r['date'])
+            who='אצל רועי' if r['parent']=='אב' else 'אצל אורטל' if r['parent']=='אם' else str(r['parent'])
+            holiday_name=str(r.get('holiday','')).strip()
+            part=str(r.get('part','')).strip()
+            notes=str(r.get('notes','')).strip()
+            line=f'{d:%d/%m/%Y} | {holiday_name} | {part} | {who}'
+            if notes:line+=f' | הערות: {notes}'
+            lines.append(line)
+        lines.extend(['', f'אם אתה מסכים לכל התוכנית, אנא השב בהודעת WhatsApp: "אני מאשר את כל תוכנית החגים לשנת {year}, גרסה {plan["revision"]}".', 'אם יש הערות או שינויים, אנא השב כאן לפני האישור.'])
+        message='\n'.join(lines)
+        st.text_area('תוכן ההודעה לרועי — אפשר להעתיק ולערוך לפני השליחה',value=message,height=230,key=f'whatsapp_plan_{year}_{plan["revision"]}')
+        st.link_button('📱 פתיחת WhatsApp לשליחת התוכנית לרועי',f'https://wa.me/?text={quote(message,safe="")}',use_container_width=True)
+        st.download_button('📄 הורדת התוכנית כקובץ טקסט לצירוף בוואטסאפ',message.encode('utf-8'),file_name=f'holiday_plan_{year}_v{plan["revision"]}.txt',mime='text/plain',use_container_width=True)
+        st.info('לאחר לחיצה על פתיחת WhatsApp בחרי את רועי כנמען ולחצי שליחה. תשובתו תגיע אלייך כהודעת WhatsApp רגילה. האפליקציה אינה קוראת הודעות WhatsApp ואינה מסמנת אישור אוטומטית.')
+        if st.button('🔄 הכנת גרסה חדשה לשליחה חוזרת',key=f'whatsapp_resend_{year}'):
+            plan['revision']+=1
+            plan['status']='draft'
+            plan['approval_token']=None
+            plan['sent_revision']=None
+            plan.setdefault('history',[]).append({'action':'prepared_whatsapp_resend','revision':plan['revision'],'at':datetime.now().isoformat(timespec='seconds')})
+            save(plans)
+            st.rerun()
         if plan.get('approved_rows'):
             st.success(f"קיימת גרסה מאושרת: {plan['approved_revision']}. אפשר להוריד אותה ליומן Google.")
             st.download_button('📅 הורדת יומן של התוכנית המאושרת (.ics)',ics(plan['approved_rows'],year),file_name=f'horut_approved_{year}.ics',mime='text/calendar')
@@ -218,19 +238,5 @@ def render():
     if year==2027:
         st.download_button('📅 הורדת אירועי 2027 ליומן Google (.ics)',ics(rows,year),file_name='horut_2027.ics',mime='text/calendar')
     st.caption('כרגע יש ייצוא לקובץ ICS לייבוא ידני ב-Google Calendar. סנכרון דו-כיווני אוטומטי מחייב הגדרת OAuth ו-Google Calendar API, ואינו מופעל בגרסה זו.')
-    # Approval view: token identifies a draft revision but does not authenticate the person opening it.
-    if plan is not None:
-        params=st.query_params
-        token=params.get('approval','')
-        if token and token==plan.get('approval_token') and plan.get('sent_revision')==plan['revision']:
-            st.subheader('אישור תוכנית שנתית')
-            st.write(f"התוכנית המוצגת לעיל היא תוכנית {year}, גרסה {plan['revision']}. האישור חל על כל התוכנית.")
-            left,right=st.columns(2)
-            if left.button('✅ אני מאשר את כל התוכנית',key='approve_year'):
-                plan['approved_rows']=[dict(r) for r in plan['rows']];plan['approved_revision']=plan['revision'];plan['status']='approved';plan['approval_token']=None
-                plan['history'].append({'action':'approval_via_link_unverified','revision':plan['revision'],'at':datetime.now().isoformat(timespec='seconds')})
-                save(plans);st.success('נרשם אישור דרך הקישור. זהות המאשר עדיין אינה מאומתת.');st.rerun()
-            if right.button('📝 מבקש תיקונים',key='request_changes'):
-                plan['status']='changes';plan['approval_token']=None
-                plan['history'].append({'action':'changes_requested_via_link_unverified','revision':plan['revision'],'at':datetime.now().isoformat(timespec='seconds')})
-                save(plans);st.rerun()
+    # WhatsApp approvals arrive as replies in the sender's own WhatsApp chat.
+    # This app does not receive WhatsApp messages or verify approval automatically.

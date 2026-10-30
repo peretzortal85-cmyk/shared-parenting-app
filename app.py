@@ -16,6 +16,11 @@ import altair as alt
 st.set_page_config(page_title='הורות ביחד', page_icon='🏠', layout='wide', initial_sidebar_state='collapsed')
 st.markdown('''<style>
 html,body,[data-testid="stAppViewContainer"]{direction:rtl}
+[data-testid="stAppViewContainer"] .block-container{direction:rtl;text-align:right}
+[data-testid="stSelectbox"], [data-testid="stTextInput"], [data-testid="stDataFrame"], [data-testid="stDataEditor"]{direction:rtl;text-align:right}
+[data-testid="stSelectbox"] label,[data-testid="stTextInput"] label{width:100%;text-align:right}
+div[data-baseweb="select"]>div{direction:rtl;text-align:right}
+[data-testid="stHorizontalBlock"]{direction:rtl}
 h1,h2,h3,p{text-align:right;overflow-wrap:break-word}
 [data-testid="stMetric"]{background:#f7f8fb;border:1px solid #e5e7eb;padding:12px;border-radius:12px;min-width:0}
 [data-testid="stMetricLabel"],[data-testid="stMetricValue"]{overflow-wrap:anywhere}
@@ -107,7 +112,7 @@ def expense_table(rows):
 
 pages=['🏠 מבט על','🧾 קבלות','💰 התחשבנות','🔁 חיובים קבועים','📅 חגים והסדרים','📨 בקשות','📊 דוחות','⚙️ הגדרות']
 st.title('🏠 הורות ביחד')
-page=st.selectbox('בחרי קטגוריה',pages)
+page=st.selectbox('בחרי קטגוריה',pages,key='main_page')
 st.caption('גרסת ניסוי — קבלות חדשות נשמרות זמנית בלבד, ללא חשבונות משתמשים')
 st.divider()
 
