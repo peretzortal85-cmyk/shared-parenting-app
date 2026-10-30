@@ -4,13 +4,28 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import date
 
-st.set_page_config(page_title="הורות ביחד",page_icon="🏠",layout="wide",initial_sidebar_state="expanded")
+st.set_page_config(page_title="הורות ביחד",page_icon="🏠",layout="wide",initial_sidebar_state="auto")
 st.markdown("""
 <style>
-html,body,[data-testid="stAppViewContainer"],[data-testid="stSidebar"]{direction:rtl}
-[data-testid="stSidebar"]{right:0;left:auto;border-left:1px solid #e5e7eb;border-right:none}
-h1,h2,h3,p{ text-align:right }
-[data-testid="stMetric"]{background:#f7f8fb;border:1px solid #e5e7eb;padding:14px;border-radius:12px}
+/* RTL for text, not for Streamlit's structural layout. */
+html, body, [data-testid="stAppViewContainer"] {direction:rtl;}
+h1,h2,h3,p {text-align:right; overflow-wrap:break-word;}
+[data-testid="stMetric"] {background:#f7f8fb;border:1px solid #e5e7eb;padding:12px;border-radius:12px;min-width:0;}
+[data-testid="stMetricLabel"], [data-testid="stMetricValue"] {overflow-wrap:anywhere;}
+[data-testid="stSidebar"] {direction:rtl;}
+/* Do not override sidebar left/right: Streamlit owns the mobile overlay. */
+@media (max-width: 768px) {
+  .block-container {padding:1rem .85rem 3rem!important; max-width:100%!important;}
+  h1 {font-size:1.45rem!important;line-height:1.35!important;}
+  h2,h3 {font-size:1.15rem!important;line-height:1.4!important;}
+  [data-testid="stHorizontalBlock"] {flex-wrap:wrap!important;gap:.5rem!important;}
+  [data-testid="column"] {min-width:calc(50% - .5rem)!important;flex:1 1 calc(50% - .5rem)!important;}
+  [data-testid="stMetricValue"] {font-size:1.35rem!important;}
+  [data-testid="stMetricLabel"] {font-size:.8rem!important;}
+  [data-testid="stSidebar"] {max-width:min(85vw,320px)!important;}
+  [data-testid="stSidebar"] * {overflow-wrap:normal;}
+  [data-testid="stDataFrame"] {max-width:100%;overflow-x:auto;}
+}
 </style>""",unsafe_allow_html=True)
 
 DATA_FILE=Path(__file__).with_name("data.json")
