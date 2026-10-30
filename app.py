@@ -1,3 +1,67 @@
+import streamlit as st
+import json
+import io
+import csv
+import uuid
+from pathlib import Path
+from datetime import date
+import pandas as pd
+import altair as alt
+
+st.set_page_config(page_title='הורות ביחד', page_icon='🏠', layout='wide', initial_sidebar_state='collapsed')
+st.markdown('''<style>
+html,body,[data-testid="stAppViewContainer"]{direction:rtl}
+h1,h2,h3,p{text-align:right;overflow-wrap:break-word}
+[data-testid="stMetric"]{background:#f7f8fb;border:1px solid #e5e7eb;padding:12px;border-radius:12px;min-width:0}
+[data-testid="stMetricLabel"],[data-testid="stMetricValue"]{overflow-wrap:anywhere}
+@media(max-width:768px){.block-container{padding:1rem .8rem 3rem!important;max-width:100%!important}h1{font-size:1.5rem!important}h2,h3{font-size:1.12rem!important}[data-testid="stHorizontalBlock"]{flex-wrap:wrap!important;gap:.5rem!important}[data-testid="column"]{min-width:calc(50% - .5rem)!important;flex:1 1 calc(50% - .5rem)!important}[data-testid="stMetricValue"]{font-size:1.25rem!important}[data-testid="stDataFrame"]{max-width:100%;overflow-x:auto}}
+</style>''',unsafe_allow_html=True)
+
+DATA_FILE=Path(__file__).with_name('data.json')
+try:
+    history=json.loads(DATA_FILE.read_text(encoding='utf-8'))
+except (OSError,json.JSONDecodeError) as e:
+    st.error('לא ניתן לקרוא את data.json. ודאי שהקובץ נמצא לצד app.py ושיש בו JSON תקין.')
+    st.stop()
+
+if 'trial_receipts' not in st.session_state:
+    st.session_state.trial_receipts=[]
+if 'confirm_delete' not in st.session_state:
+    st.session_state.confirm_delete=None
+
+months=sorted(set(r['month'] for r in history))
+if not months:
+    st.error('לא נמצאו חודשים בקובץ הנתונים.')
+    st.stop()
+
+def money(n): return f'₪{n:,.2f}'
+
+def all_rows():
+    rows=list(history)
+    for r in st.session_state.trial_receipts:
+        rows.append({'month':r['month'],'name':r['description']+' (קבלת ניסוי)','type':'משותפות / התאמות','original_amount':r['amount'],'charge':r['father_share'],'notes':r['allocation']+' | קבלת ניסוי','_receipt_id':r['id']})
+    return rows
+
+def rows_for_month(month): return [r for r in all_rows() if r['month']==month]
+
+def totals(rows):
+    fixed=round(sum(float(r['charge']) for r in rows if r['type']=='קבועות'),2)
+    shared=round(sum(float(r['charge']) for r in rows if r['type']!='קבועות'),2)
+    return fixed,shared,round(fixed+shared,2)
+
+def expense_table(rows):
+    return [{'הוצאה':r['name'],'סוג':r['type'],'סכום מקורי':r.get('original_amount',0),'לחיוב האב':r['charge'],'הערות':r.get('notes','')} for r in rows]
+
+pages=['🏠 מבט על','🧾 קבלות','💰 התחשבנות','🔁 חיובים קבועים','📅 חגים והסדרים','📨 בקשות','📊 דוחות','⚙️ הגדרות']
+st.title('🏠 הורות ביחד')
+page=st.selectbox('בחרי קטגוריה',pages)
+st.caption('גרסת ניסוי — קבלות חדשות נשמרות זמנית בלבד, ללא חשבונות משתמשים')
+st.divider()
+
+if page==pages[0]:
+    st.header('מבט על · התחשבנות שנתית')
+    year=st.selectbox('שנה',sorted({m[:4] for m in months},reverse=True))
+    relevant=[m for m in months if m.startswith(year)]
     default_month=f'{date.today().year}-{date.today().month:02d}'
     chosen=st.selectbox('חודש להצגת פירוט',relevant,index=relevant.index(default_month) if default_month in relevant else 0,format_func=lambda m:m[5:7]+'/'+m[:4])
     fixed,shared,total=totals(rows_for_month(chosen))
