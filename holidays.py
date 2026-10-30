@@ -1,4 +1,4 @@
-import io, json, re, uuid, zipfile, xml.etree.ElementTree as ET
+import io, json, re, uuid, zipfile, html, xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import quote
@@ -115,7 +115,7 @@ def render():
         with st.expander('✏️ עריכת תוכנית החגים',expanded=False):
             st.caption('ערכי את השורות ושמרי. כל שמירה יוצרת גרסה חדשה ומבטלת את תוקף האישור לגבי השינויים החדשים.')
             with st.form('holiday_edit'):
-                edited=st.data_editor([{'מזהה':r['id'],'חג':r['holiday'],'תאריך':r['date'],'חלק החג':r['part'],'הורה':r['parent'],'הערות':r['notes']} for r in rows],hide_index=True,use_container_width=True,num_rows='fixed',disabled=['מזהה','חג'],column_config={'הורה':st.column_config.SelectboxColumn('הורה',options=['אב','אם'],required=True),'תאריך':st.column_config.TextColumn('תאריך YYYY-MM-DD',required=True)})
+                edited=st.data_editor([{'מזהה':r['id'],'חג':r['holiday'],'תאריך':r['date'],'חלק החג':r['part'],'הורה':r['parent'],'הערות':r['notes']} for r in rows],hide_index=True,use_container_width=True,num_rows='fixed',disabled=['מזהה','חג'],column_config={'הורה':st.column_config.SelectboxColumn('הורה',options=['אב','אם'],required=True),'תאריך':st.column_config.TextColumn('תאריך YYYY-MM-DD',required=True),'הערות':st.column_config.TextColumn('הערות',width='large')},row_height=90)
                 submit=st.form_submit_button('💾 שמירת שינויים',type='primary')
             if submit:
                 try:
@@ -131,7 +131,29 @@ def render():
                     else:st.info('לא זוהו שינויים.')
                 except (ValueError,TypeError) as e:st.error(f'תאריך או הורה לא תקין: {e}')
     display=[{'חג':r['holiday'],'תאריך':date.fromisoformat(r['date']).strftime('%d/%m/%Y'),'יום (במקור)':r.get('day_label','') if year==2027 else '', 'חלק החג':r['part'],'שהות':('אצל רועי' if r['parent']=='אב' else 'אצל אורטל' if r['parent']=='אם' else r['parent']),'הערות':r['notes']} for r in rows]
-    st.dataframe(display,hide_index=True,use_container_width=True)
+    # Render in an explicit RTL HTML table: holiday first, date second, notes last.
+    # Unlike st.dataframe, browser RTL layout cannot reverse the visible column order.
+    headings=['חג','תאריך','יום (במקור)','חלק החג','שהות','הערות']
+    def safe(v):
+        return html.escape(str(v if v is not None else '')).replace('\n','<br>')
+    head=''.join(f'<th scope="col">{safe(h)}</th>' for h in headings)
+    body=''.join('<tr>'+''.join(f'<td>{safe(r.get(h,""))}</td>' for h in headings)+'</tr>' for r in display)
+    st.markdown(f"""
+    <style>
+    .holiday-scroll {{overflow-x:auto;max-width:100%;margin:0.8rem 0 1.2rem}}
+    .holiday-table {{direction:rtl;border-collapse:collapse;width:100%;min-width:760px;text-align:right;table-layout:fixed}}
+    .holiday-table th,.holiday-table td {{border:1px solid #d8dee5;padding:10px 12px;vertical-align:top;white-space:normal;overflow-wrap:anywhere;word-break:normal}}
+    .holiday-table th {{background:#edf2f7;color:#15212d;font-weight:700}}
+    .holiday-table tr:nth-child(even) {{background:rgba(130,140,160,.07)}}
+    .holiday-table th:nth-child(1) {{width:17%}}
+    .holiday-table th:nth-child(2) {{width:13%}}
+    .holiday-table th:nth-child(3) {{width:11%}}
+    .holiday-table th:nth-child(4) {{width:15%}}
+    .holiday-table th:nth-child(5) {{width:14%}}
+    .holiday-table th:nth-child(6) {{width:30%}}
+    </style>
+    <div class="holiday-scroll"><table class="holiday-table" dir="rtl"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>
+    """,unsafe_allow_html=True)
     if year==2027:
         st.download_button('📎 הורדת קובץ האקסל המקורי ללא שינוי',SOURCE.read_bytes(),file_name='טבלת סידור חגים 2027.xlsx')
     else:
