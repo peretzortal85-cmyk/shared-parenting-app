@@ -1,0 +1,882 @@
+[
+  {
+    "month": "2025-12",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3473.0,
+    "notes": ""
+  },
+  {
+    "month": "2025-12",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2025-12",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2025-12",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2025-12",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2025-12",
+    "name": "מסיבת סיום",
+    "type": "משותפות / התאמות",
+    "original_amount": 400.0,
+    "charge": 200.0,
+    "notes": "ליעוז חצי תשלום"
+  },
+  {
+    "month": "2025-12",
+    "name": "בדיקת שמיעה",
+    "type": "משותפות / התאמות",
+    "original_amount": 40.0,
+    "charge": 20.0,
+    "notes": "טופס 17"
+  },
+  {
+    "month": "2025-12",
+    "name": "מתמטיקה ליעוז",
+    "type": "משותפות / התאמות",
+    "original_amount": 438.0,
+    "charge": -219.0,
+    "notes": "עד חודש 12.25"
+  },
+  {
+    "month": "2025-12",
+    "name": "מיקוד ראיה",
+    "type": "משותפות / התאמות",
+    "original_amount": -30.0,
+    "charge": -15.0,
+    "notes": ""
+  },
+  {
+    "month": "2025-12",
+    "name": "טיפול שיניים",
+    "type": "משותפות / התאמות",
+    "original_amount": -28.0,
+    "charge": -14.0,
+    "notes": "זוהר גז צחוק"
+  },
+  {
+    "month": "2026-01",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-01",
+    "name": "הפרש מזונות 12.25",
+    "type": "משותפות / התאמות",
+    "original_amount": null,
+    "charge": 69.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-01",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-01",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-01",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-01",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-01",
+    "name": "טופס 17",
+    "type": "משותפות / התאמות",
+    "original_amount": 40.0,
+    "charge": 20.0,
+    "notes": "זוהר"
+  },
+  {
+    "month": "2026-02",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-02",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-02",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-02",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-02",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-02",
+    "name": "תחפושות",
+    "type": "משותפות / התאמות",
+    "original_amount": -103.5,
+    "charge": -51.75,
+    "notes": ""
+  },
+  {
+    "month": "2026-02",
+    "name": "תרופות זוהר",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.43,
+    "charge": 50.215,
+    "notes": ""
+  },
+  {
+    "month": "2026-03",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-03",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-03",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-03",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-03",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-04",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-04",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-04",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-04",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-04",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-04",
+    "name": "טלפון לזוהר",
+    "type": "משותפות / התאמות",
+    "original_amount": 490.0,
+    "charge": 245.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-04",
+    "name": "כיסוי לטלפון",
+    "type": "משותפות / התאמות",
+    "original_amount": 60.0,
+    "charge": 30.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-04",
+    "name": "השאלת ספרים",
+    "type": "משותפות / התאמות",
+    "original_amount": 280.0,
+    "charge": 140.0,
+    "notes": "זוהר"
+  },
+  {
+    "month": "2026-05",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-05",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-05",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-05",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-05",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-05",
+    "name": "שטף קריאה",
+    "type": "משותפות / התאמות",
+    "original_amount": 1500.0,
+    "charge": 750.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-05",
+    "name": "בת מצווה ליעוז",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "28.05.26"
+  },
+  {
+    "month": "2026-05",
+    "name": "מנוי בריזה",
+    "type": "משותפות / התאמות",
+    "original_amount": null,
+    "charge": -430.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-06",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-06",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-06",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-06",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-06",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-06",
+    "name": "יום הולדת אופיר",
+    "type": "משותפות / התאמות",
+    "original_amount": 80.0,
+    "charge": 40.0,
+    "notes": "זוהר"
+  },
+  {
+    "month": "2026-06",
+    "name": "בת מצווה ליעוז",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "11.06"
+  },
+  {
+    "month": "2026-06",
+    "name": "זיכוי חוג",
+    "type": "משותפות / התאמות",
+    "original_amount": -240.0,
+    "charge": -120.0,
+    "notes": "זוהר"
+  },
+  {
+    "month": "2026-06",
+    "name": "מונית חוג",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-07",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-07",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-07",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-07",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-07",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-07",
+    "name": "בת מצווה",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "30.06"
+  },
+  {
+    "month": "2026-07",
+    "name": "יום הולת מאור",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "20.059999999999999"
+  },
+  {
+    "month": "2026-07",
+    "name": "אשראי ליעוז",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "טעינה"
+  },
+  {
+    "month": "2026-08",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-08",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-08",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-08",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-08",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-08",
+    "name": "חוג מתמטיקה",
+    "type": "משותפות / התאמות",
+    "original_amount": 250.0,
+    "charge": 125.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-08",
+    "name": "מתנה לאיירין",
+    "type": "משותפות / התאמות",
+    "original_amount": 243.0,
+    "charge": 121.5,
+    "notes": "זוהר"
+  },
+  {
+    "month": "2026-08",
+    "name": "רופא חירוג",
+    "type": "משותפות / התאמות",
+    "original_amount": 31.0,
+    "charge": 15.5,
+    "notes": "זוהר"
+  },
+  {
+    "month": "2026-08",
+    "name": "מתנה לגיא",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-08",
+    "name": "ספרי אנגלית",
+    "type": "משותפות / התאמות",
+    "original_amount": 184.0,
+    "charge": 92.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-08",
+    "name": "תיקי בי\"ס",
+    "type": "משותפות / התאמות",
+    "original_amount": 232.0,
+    "charge": 116.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-08",
+    "name": "אוזניות",
+    "type": "משותפות / התאמות",
+    "original_amount": 30.0,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-08",
+    "name": "מחשבון",
+    "type": "משותפות / התאמות",
+    "original_amount": 90.0,
+    "charge": 45.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-08",
+    "name": "ציוד בי\"ס",
+    "type": "משותפות / התאמות",
+    "original_amount": 222.0,
+    "charge": 111.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-08",
+    "name": "השאלת ספרים",
+    "type": "משותפות / התאמות",
+    "original_amount": 280.0,
+    "charge": 140.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-08",
+    "name": "נעלי ריצה",
+    "type": "משותפות / התאמות",
+    "original_amount": 40.0,
+    "charge": 20.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-08",
+    "name": "רב קו",
+    "type": "משותפות / התאמות",
+    "original_amount": 35.0,
+    "charge": 17.5,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-08",
+    "name": "שטף קריאה",
+    "type": "משותפות / התאמות",
+    "original_amount": 1500.0,
+    "charge": 750.0,
+    "notes": "זוהר"
+  },
+  {
+    "month": "2026-08",
+    "name": "לוקר",
+    "type": "משותפות / התאמות",
+    "original_amount": -214.0,
+    "charge": -107.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-09",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-09",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-09",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-09",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-09",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-09",
+    "name": "ועד זוהר",
+    "type": "משותפות / התאמות",
+    "original_amount": 220.0,
+    "charge": 110.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-09",
+    "name": "סל תרבות",
+    "type": "משותפות / התאמות",
+    "original_amount": 535.0,
+    "charge": 267.5,
+    "notes": "זוהר"
+  },
+  {
+    "month": "2026-09",
+    "name": "מרכז הצלחה",
+    "type": "משותפות / התאמות",
+    "original_amount": 480.0,
+    "charge": 240.0,
+    "notes": "שעות קריאה זוהר"
+  },
+  {
+    "month": "2026-09",
+    "name": "מתנה לשי",
+    "type": "משותפות / התאמות",
+    "original_amount": 10.0,
+    "charge": 5.0,
+    "notes": "מורה של ליעוז"
+  },
+  {
+    "month": "2026-10",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-10",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-10",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-10",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-10",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-10",
+    "name": "בר מצווה נתנאל",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-10",
+    "name": "יום הולדת אופיר",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "זוהר"
+  },
+  {
+    "month": "2026-10",
+    "name": "ועד כיתה",
+    "type": "משותפות / התאמות",
+    "original_amount": 200.0,
+    "charge": 100.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-10",
+    "name": "טעינת אשראי",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-10",
+    "name": "בר מצווה אלעד",
+    "type": "משותפות / התאמות",
+    "original_amount": 100.0,
+    "charge": 50.0,
+    "notes": "ליעוז"
+  },
+  {
+    "month": "2026-11",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-11",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-11",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-11",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-11",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-12",
+    "name": "מזונות",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 3542.8,
+    "notes": ""
+  },
+  {
+    "month": "2026-12",
+    "name": "מדור",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 700.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-12",
+    "name": "מכבי",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 40.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-12",
+    "name": "ליעוז טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  },
+  {
+    "month": "2026-12",
+    "name": "זוהר טלפון",
+    "type": "קבועות",
+    "original_amount": null,
+    "charge": 15.0,
+    "notes": ""
+  }
+]
