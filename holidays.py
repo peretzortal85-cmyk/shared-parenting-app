@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import quote
 import streamlit as st
-from pyluach import dates
+from pyluach import dates, hebrewcal
 
 ROOT = Path(__file__).parent
 SOURCE = ROOT / 'holiday_source_2027.xlsx'
@@ -61,8 +61,8 @@ def next_year_date(s,target):
     original=date.fromisoformat(s)
     h=dates.GregorianDate(original.year,original.month,original.day).to_heb()
     hyear=h.year+(target-2027)
-    source_leap=dates.HebrewDate(h.year,1,1).leap
-    target_leap=dates.HebrewDate(hyear,1,1).leap
+    source_leap=hebrewcal.Year(h.year).leap
+    target_leap=hebrewcal.Year(hyear).leap
     month=h.month
     # Pyluach: Adar=12 in common years; Adar I=12, Adar II=13 in leap years.
     # Purim (Adar II) must map to ordinary Adar in a non-leap year.
@@ -110,8 +110,20 @@ def render():
     year=st.selectbox('שנת תוכנית',years,index=years.index(int(requested)) if requested.isdigit() and int(requested) in years else 0,key='holiday_year')
     plans=load()
     if year==2027:
-        st.info('שנת בסיס: התוכן מועתק לקריאה בלבד מהאקסל המקורי. אין שינוי בקובץ.')
+        st.info('שנת בסיס: הטבלה מוצגת מהאקסל המקורי ללא שינוי. ניתן לשלוח עותק של התוכנית כולה לאישור רועי.')
         rows=original
+        plan=plans.get('2027')
+        if plan is None:
+            if st.button('📨 הכנת תוכנית 2027 לשליחה לרועי',type='primary'):
+                plans['2027']={'revision':1,'status':'draft','approved_revision':None,'approved_rows':None,'sent_revision':None,'approval_token':None,'history':[],'rows':[dict(r) for r in original]}
+                save(plans)
+                st.rerun()
+        else:
+            # Always use the original spreadsheet for the base year; no editing of source.
+            plan['rows']=[dict(r) for r in original]
+            statuses={'draft':'טיוטה','sent':'נשלחה לעיון — ממתינה לאישור','approved':'תוכנית מאושרת','changes':'נדרשים תיקונים'}
+            st.write(f"**מצב:** {statuses.get(plan['status'],plan['status'])} | **גרסה:** {plan['revision']}")
+            st.warning('אישור הקישור עדיין אינו מאמת את זהות רועי; השמירה בשרת Streamlit זמנית.')
     else:
         key=str(year)
         if key not in plans:
@@ -181,7 +193,7 @@ def render():
     """,unsafe_allow_html=True)
     if year==2027:
         st.download_button('📎 הורדת קובץ האקסל המקורי ללא שינוי',SOURCE.read_bytes(),file_name='טבלת סידור חגים 2027.xlsx')
-    else:
+    if plan is not None:
         st.subheader('📨 שליחת כל התוכנית לרועי לאישור')
         st.caption('WhatsApp פותח הודעה מוכנה. לאחר פתיחת ההודעה צריך ללחוץ שליחה בוואטסאפ בעצמך.')
         if st.button('🔗 הכנת קישור חדש לאישור הגרסה הנוכחית',type='primary'):
@@ -207,7 +219,7 @@ def render():
         st.download_button('📅 הורדת אירועי 2027 ליומן Google (.ics)',ics(rows,year),file_name='horut_2027.ics',mime='text/calendar')
     st.caption('כרגע יש ייצוא לקובץ ICS לייבוא ידני ב-Google Calendar. סנכרון דו-כיווני אוטומטי מחייב הגדרת OAuth ו-Google Calendar API, ואינו מופעל בגרסה זו.')
     # Approval view: token identifies a draft revision but does not authenticate the person opening it.
-    if year!=2027:
+    if plan is not None:
         params=st.query_params
         token=params.get('approval','')
         if token and token==plan.get('approval_token') and plan.get('sent_revision')==plan['revision']:
