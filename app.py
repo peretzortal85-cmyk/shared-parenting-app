@@ -37,6 +37,17 @@ h1,h2,h3,p{text-align:right;overflow-wrap:break-word}
 [data-baseweb="popover"] [role="listbox"], [data-baseweb="popover"] [role="option"], [data-baseweb="menu"] {direction:rtl!important;text-align:right!important;}
 [data-baseweb="popover"] [role="option"] {justify-content:flex-end!important;}
 [data-testid="stVerticalBlock"], [data-testid="stAppViewContainer"] main {direction:rtl!important;}
+
+/* RTL controls: keep control on the RIGHT and content aligned right. */
+[data-testid="stSelectbox"] {width:min(100%, 440px)!important;max-width:440px!important;margin-left:auto!important;margin-right:0!important;direction:rtl!important;}
+[data-testid="stSelectbox"] label, [data-testid="stSelectbox"] label p {direction:rtl!important;text-align:right!important;justify-content:flex-start!important;width:100%!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] {direction:rtl!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] > div {direction:rtl!important;text-align:right!important;display:flex!important;flex-direction:row!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"] {direction:rtl!important;text-align:right!important;display:flex!important;flex-direction:row!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"] > div:first-child {margin-left:auto!important;margin-right:0!important;text-align:right!important;direction:rtl!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] input {direction:rtl!important;text-align:right!important;}
+[data-baseweb="popover"] [role="listbox"], [data-baseweb="popover"] [role="option"], [data-baseweb="menu"] [role="option"] {direction:rtl!important;text-align:right!important;}
+[data-baseweb="popover"] [role="option"] > div, [data-baseweb="popover"] [role="option"] span {direction:rtl!important;text-align:right!important;}
 </style>''',unsafe_allow_html=True)
 
 DATA_FILE=Path(__file__).with_name('data.json')
@@ -124,7 +135,20 @@ def expense_table(rows):
 
 pages=['🏠 מבט על','🧾 קבלות','💰 התחשבנות','🔁 חיובים קבועים','📅 חגים והסדרים','📨 בקשות','📊 דוחות','⚙️ הגדרות']
 st.title('🏠 הורות ביחד')
-page=st.selectbox('בחרי קטגוריה',pages,key='main_page')
+st.markdown("""<style>
+/* Native Streamlit buttons replace BaseWeb dropdown menus for reliable RTL. */
+[data-testid="stButton"] button {direction:rtl!important;text-align:right!important;justify-content:flex-start!important}
+[data-testid="stPopover"] {direction:rtl!important}
+[data-testid="stPopover"] button {direction:rtl!important;text-align:right!important;justify-content:flex-start!important}
+</style>""",unsafe_allow_html=True)
+if st.session_state.get('main_page') not in pages:
+    st.session_state['main_page']=pages[0]
+with st.popover('📂 בחרי קטגוריה: '+st.session_state['main_page'],use_container_width=True):
+    for i, item in enumerate(pages):
+        if st.button(item,key=f'page_nav_{i}',use_container_width=True):
+            st.session_state['main_page']=item
+            st.rerun()
+page=st.session_state['main_page']
 st.caption('גרסת ניסוי — קבלות חדשות נשמרות זמנית בלבד, ללא חשבונות משתמשים')
 st.divider()
 
