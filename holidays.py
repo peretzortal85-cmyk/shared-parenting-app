@@ -101,9 +101,47 @@ def ics(rows,year):
     parts.append('END:VCALENDAR')
     return ('\r\n'.join(parts)+'\r\n').encode('utf-8')
 
+def export_plan_xlsx(rows, year, revision):
+    # Export currently edited plan as formatted RTL XLSX without changing the source.
+    from xml.sax.saxutils import escape
+    columns = ['חג', 'תאריך', 'יום', 'חלק החג', 'שהות', 'הערות']
+    weekdays = ['יום שני','יום שלישי','יום רביעי','יום חמישי','יום שישי','יום שבת','יום ראשון']
+    table = [columns]
+    for r in rows:
+        d = date.fromisoformat(r['date'])
+        table.append([str(r.get('holiday','')), d.strftime('%d/%m/%Y'), weekdays[d.weekday()],
+                      str(r.get('part','')), 'אצל רועי (האב)' if r.get('parent') == 'אב' else 'אצל אורטל (האם)' if r.get('parent') == 'אם' else str(r.get('parent','')),
+                      str(r.get('notes',''))])
+    def col_name(n):
+        result = ''
+        while n:
+            n, rem = divmod(n-1,26)
+            result = chr(65+rem)+result
+        return result
+    cells=[]
+    for ri, record in enumerate(table,1):
+        row=[]
+        for ci, value in enumerate(record,1):
+            ref=f'{col_name(ci)}{ri}'
+            value=escape(value, {'"':'&quot;'})
+            row.append(f'<c r="{ref}" s="{1 if ri==1 else 2}" t="inlineStr"><is><t xml:space="preserve">{value}</t></is></c>')
+        cells.append(f'<row r="{ri}" ht="{34 if ri==1 else 54}" customHeight="1">{"".join(row)}</row>')
+    sheet=f'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0" rightToLeft="1"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/><cols><col min="1" max="1" width="23" customWidth="1"/><col min="2" max="2" width="19" customWidth="1"/><col min="3" max="3" width="19" customWidth="1"/><col min="4" max="4" width="25" customWidth="1"/><col min="5" max="5" width="24" customWidth="1"/><col min="6" max="6" width="65" customWidth="1"/></cols><sheetData>{"".join(cells)}</sheetData><autoFilter ref="A1:F{len(table)}"/><pageMargins left="0.3" right="0.3" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>'''
+    styles='''<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Arial"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Arial"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF245A81"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFD8DEE5"/></left><right style="thin"><color rgb="FFD8DEE5"/></right><top style="thin"><color rgb="FFD8DEE5"/></top><bottom style="thin"><color rgb="FFD8DEE5"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="top" wrapText="1"/></xf></cellXfs></styleSheet>'''
+    content_types='''<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'''
+    workbook=f'''<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="חגים {year}" sheetId="1" r:id="rId1"/></sheets></workbook>'''
+    workbook_rels='''<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'''
+    root_rels='''<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'''
+    output=io.BytesIO()
+    with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as z:
+        for name,data in {'[Content_Types].xml':content_types,'_rels/.rels':root_rels,'xl/workbook.xml':workbook,'xl/_rels/workbook.xml.rels':workbook_rels,'xl/styles.xml':styles,'xl/worksheets/sheet1.xml':sheet}.items():
+            z.writestr(name,data.encode('utf-8'))
+    return output.getvalue()
+
 def render():
     st.header('📅 חגים והסדרים')
-    st.markdown('<style>[data-testid="stSelectbox"],[data-testid="stTextInput"]{direction:rtl;text-align:right}[data-testid="stSelectbox"] label,[data-testid="stTextInput"] label{text-align:right;width:100%}div[data-baseweb="select"]>div{direction:rtl;text-align:right}</style>',unsafe_allow_html=True)
+    st.markdown('<style>[data-testid="stSelectbox"],[data-testid="stTextInput"]{direction:rtl;text-align:right}[data-testid="stSelectbox"] label,[data-testid="stTextInput"] label{text-align:right;width:100%}div[data-baseweb="select"],div[data-baseweb="select"]>div,div[data-baseweb="select"] [role="combobox"]{direction:rtl!important;text-align:right!important;justify-content:flex-start!important}div[data-baseweb="popover"] [role="listbox"],ul[role="listbox"],li[role="option"]{direction:rtl!important;text-align:right!important}div[data-baseweb="popover"] li{justify-content:flex-start!important}</style>',unsafe_allow_html=True)
     st.caption('טבלת 2027 מוצגת מתוך קובץ האקסל המקורי ללא שינוי. שנים חדשות הן הצעות שניתנות לעריכה ולאישור.')
     original=read_original()
     requested=st.query_params.get('holiday_year','2027')
@@ -201,24 +239,15 @@ def render():
         st.download_button('📎 הורדת קובץ האקסל המקורי ללא שינוי',SOURCE.read_bytes(),file_name='טבלת סידור חגים 2027.xlsx')
     if plan is not None:
         st.subheader('📨 שליחת תוכנית החגים לרועי בוואטסאפ')
-        st.caption('ללא הרשמה וללא קישור לאפליקציה: רועי יקבל את התאריכים והחלוקה בהודעת WhatsApp וישיב לך באותה שיחה.')
-        plan_rows=plan['rows']
-        lines=[f'תוכנית חגים {year} | גרסה {plan["revision"]}', '', 'רועי, מצורפת תוכנית החגים המלאה לעיונך ולאישורך:', '']
-        for r in plan_rows:
-            d=date.fromisoformat(r['date'])
-            who='אצל רועי' if r['parent']=='אב' else 'אצל אורטל' if r['parent']=='אם' else str(r['parent'])
-            holiday_name=str(r.get('holiday','')).strip()
-            part=str(r.get('part','')).strip()
-            notes=str(r.get('notes','')).strip()
-            line=f'{d:%d/%m/%Y} | {holiday_name} | {part} | {who}'
-            if notes:line+=f' | הערות: {notes}'
-            lines.append(line)
-        lines.extend(['', f'אם אתה מסכים לכל התוכנית, אנא השב בהודעת WhatsApp: "אני מאשר את כל תוכנית החגים לשנת {year}, גרסה {plan["revision"]}".', 'אם יש הערות או שינויים, אנא השב כאן לפני האישור.'])
-        message='\n'.join(lines)
-        st.text_area('תוכן ההודעה לרועי — אפשר להעתיק ולערוך לפני השליחה',value=message,height=230,key=f'whatsapp_plan_{year}_{plan["revision"]}')
-        st.link_button('📱 פתיחת WhatsApp לשליחת התוכנית לרועי',f'https://wa.me/?text={quote(message,safe="")}',use_container_width=True)
-        st.download_button('📄 הורדת התוכנית כקובץ טקסט לצירוף בוואטסאפ',message.encode('utf-8'),file_name=f'holiday_plan_{year}_v{plan["revision"]}.txt',mime='text/plain',use_container_width=True)
-        st.info('לאחר לחיצה על פתיחת WhatsApp בחרי את רועי כנמען ולחצי שליחה. תשובתו תגיע אלייך כהודעת WhatsApp רגילה. האפליקציה אינה קוראת הודעות WhatsApp ואינה מסמנת אישור אוטומטית.')
+        st.caption('הורידי את קובץ Excel המעודכן כפי שמופיע בטבלה, ושלחי אותו לרועי כקובץ מצורף ב-WhatsApp. אין צורך בהרשמה לאפליקציה.')
+        st.download_button('📊 הורדת תוכנית החגים המעודכנת באקסל',
+            data=export_plan_xlsx(plan['rows'],year,plan['revision']),
+            file_name=f'horut_holidays_{year}_v{plan["revision"]}.xlsx',
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            use_container_width=True, key=f'xlsx_export_{year}_{plan["revision"]}')
+        approval_text=f'רועי, מצורף קובץ תוכנית החגים לשנת {year}, גרסה {plan["revision"]}, לעיונך ולאישורך. לאחר שתעבור על כל התוכנית, אנא השב לי כאן: אני מאשר את תוכנית החגים לשנת {year}, גרסה {plan["revision"]}. אם יש תיקונים, כתוב לי לפני האישור.'
+        st.link_button('📱 פתיחת WhatsApp לרועי',f'https://wa.me/?text={quote(approval_text,safe="")}',use_container_width=True)
+        st.info('חשוב: WhatsApp לא מאפשר לאתר לצרף קובץ Excel אוטומטית דרך הקישור. לחצי תחילה על הורדת האקסל, פתחי את WhatsApp, בחרי את רועי וצרפי את הקובץ שהורדת באמצעות סמל האטב 📎. ההודעה מכילה בקשת אישור קצרה בלבד, לא את כל הטבלה.')
         if st.button('🔄 הכנת גרסה חדשה לשליחה חוזרת',key=f'whatsapp_resend_{year}'):
             plan['revision']+=1
             plan['status']='draft'

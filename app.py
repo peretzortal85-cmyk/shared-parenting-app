@@ -19,7 +19,10 @@ html,body,[data-testid="stAppViewContainer"]{direction:rtl}
 [data-testid="stAppViewContainer"] .block-container{direction:rtl;text-align:right}
 [data-testid="stSelectbox"], [data-testid="stTextInput"], [data-testid="stDataFrame"], [data-testid="stDataEditor"]{direction:rtl;text-align:right}
 [data-testid="stSelectbox"] label,[data-testid="stTextInput"] label{width:100%;text-align:right}
-div[data-baseweb="select"]>div{direction:rtl;text-align:right}
+div[data-baseweb="select"],div[data-baseweb="select"]>div,div[data-baseweb="select"] [role="combobox"]{direction:rtl!important;text-align:right!important;justify-content:flex-start!important}
+div[data-baseweb="popover"] [role="listbox"],ul[role="listbox"],li[role="option"]{direction:rtl!important;text-align:right!important}
+div[data-baseweb="popover"] li{justify-content:flex-start!important}
+[data-testid="stSelectbox"] [data-baseweb="select"] span{direction:rtl!important;text-align:right!important}
 [data-testid="stHorizontalBlock"]{direction:rtl}
 h1,h2,h3,p{text-align:right;overflow-wrap:break-word}
 [data-testid="stMetric"]{background:#f7f8fb;border:1px solid #e5e7eb;padding:12px;border-radius:12px;min-width:0}
