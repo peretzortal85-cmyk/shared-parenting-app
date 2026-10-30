@@ -227,6 +227,10 @@ elif page==pages[3]:
     month=st.selectbox('בחרי חודש',months[::-1])
     st.dataframe([{'חיוב':r['name'],'סכום (₪)':r['charge']} for r in rows_for_month(month) if r['type']=='קבועות'],hide_index=True,use_container_width=True)
 
+elif page==pages[4]:
+    from holidays import render
+    render()
+
 elif page==pages[6]:
     st.header('דוחות')
     year=st.selectbox('שנה',sorted({m[:4] for m in months},reverse=True))
