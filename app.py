@@ -3,6 +3,11 @@ import json
 import io
 import csv
 import uuid
+import re
+from datetime import datetime
+from PIL import Image, ImageOps, ImageEnhance
+import pytesseract
+import fitz
 from pathlib import Path
 from datetime import date
 import pandas as pd
@@ -29,7 +34,55 @@ if 'trial_receipts' not in st.session_state:
 if 'confirm_delete' not in st.session_state:
     st.session_state.confirm_delete=None
 
-months=sorted(set(r['month'] for r in history))
+def receipt_text(upload):
+    """Extract text from JPG/PNG or digital/scanned PDF; never transmit to an external OCR API."""
+    content=upload.getvalue()
+    if upload.name.lower().endswith('.pdf'):
+        document=fitz.open(stream=content,filetype='pdf')
+        if len(document)>5:
+            raise ValueError('לניסוי ניתן להעלות PDF עד 5 עמודים.')
+        parts=[]
+        for page in document:
+            txt=page.get_text('text')
+            if len(txt.strip())>=40:
+                parts.append(txt)
+            else:
+                pix=page.get_pixmap(matrix=fitz.Matrix(2,2),alpha=False)
+                img=Image.open(io.BytesIO(pix.tobytes('png')))
+                parts.append(pytesseract.image_to_string(img,lang='heb+eng',config='--psm 6'))
+        return '\n'.join(parts)
+    img=Image.open(io.BytesIO(content)).convert('RGB')
+    img=ImageOps.exif_transpose(img)
+    if max(img.size)>2400:
+        img.thumbnail((2400,2400))
+    img=ImageEnhance.Contrast(img).enhance(1.5)
+    return pytesseract.image_to_string(img,lang='heb+eng',config='--psm 6')
+
+def parse_receipt(text):
+    # Prefer dates formatted DD/MM/YYYY or DD.MM.YYYY; require a valid calendar date.
+    dates=[]
+    for match in re.finditer(r'(?<!\d)([0-3]?\d)[./-]([01]?\d)[./-](20\d{2}|\d{2})(?!\d)',text):
+        day,month,year=map(int,match.groups())
+        year=year+2000 if year<100 else year
+        try: dates.append(date(year,month,day))
+        except ValueError: pass
+    found_date=dates[0] if dates else None
+    # OCR frequently reads 55.00 as 55,00. Prefer amounts near total/payment labels.
+    candidates=[]
+    for line in text.splitlines():
+        normalized=line.replace('₪',' ')
+        for match in re.finditer(r'(?<!\d)(\d{1,5}[.,]\d{2})(?!\d)',normalized):
+            value=float(match.group(1).replace(',','.'))
+            if value<=0: continue
+            label=bool(re.search(r'לתשלום|סה.?כ|סכום|שולם|total|amount|55\.00',line,re.I))
+            # Exclude likely dates and timestamps.
+            if re.search(r'\d{1,2}[./-]\d{1,2}[./-]\d{2,4}',line):
+                continue
+            candidates.append((int(label),value))
+    amount=sorted(candidates,reverse=True)[0][1] if candidates else None
+    return found_date,amount
+
+months=sorted(set(r['month'] for r in history) | {r['month'] for r in st.session_state.trial_receipts})
 if not months:
     st.error('לא נמצאו חודשים בקובץ הנתונים.')
     st.stop()
@@ -92,26 +145,50 @@ if page==pages[0]:
     st.markdown(f'**סה״כ לחודש {chosen[5:7]}.{chosen[:4]}: {money(total)}**')
 
 elif page==pages[1]:
-    st.header('🧾 קבלות')
-    st.info('ניסוי זמני: אפשר להוסיף קבלה להתחשבנות ולמחוק אותה. הנתונים והקובץ אינם נשמרים בשרת.')
-    with st.form('receipt_form',clear_on_submit=True):
-        receipt=st.file_uploader('צילום קבלה או PDF',type=['jpg','jpeg','png','pdf'])
-        description=st.text_input('תיאור ההוצאה',placeholder='למשל: ציוד לבית הספר')
-        month=st.selectbox('חודש לחיוב',months[::-1],format_func=lambda m:m[5:7]+'/'+m[:4])
-        amount=st.number_input('סכום הקבלה (₪)',min_value=0.0,step=10.0)
-        allocation=st.radio('מי נושא בתשלום?', ['חלוקה שווה 50/50','האב משלם 100%','האם משלמת 100%'])
-        submitted=st.form_submit_button('➕ הוספת קבלה להתחשבנות',type='primary',use_container_width=True)
-    if submitted:
-        if receipt is None:
-            st.error('יש לבחור צילום קבלה או PDF.')
-        elif not description.strip():
-            st.error('יש להזין תיאור הוצאה.')
-        elif amount<=0:
-            st.error('יש להזין סכום גדול מאפס.')
-        else:
-            father=round(amount/2,2) if allocation=='חלוקה שווה 50/50' else (round(amount,2) if allocation=='האב משלם 100%' else 0.0)
-            st.session_state.trial_receipts.append({'id':str(uuid.uuid4()),'month':month,'description':description.strip(),'amount':round(amount,2),'allocation':allocation,'father_share':father,'filename':receipt.name})
-            st.success('הקבלה נוספה להתחשבנות הניסוי! עברי למבט על או להתחשבנות כדי לראות את הסכום המעודכן.')
+    st.header('🧾 קבלות — זיהוי אוטומטי')
+    st.info('גרסת ניסוי: זיהוי תאריך וסכום מתמונות ומ־PDF, אישור ידני, הוספה מיידית להתחשבנות ומחיקה. קבלות הניסוי אינן נשמרות לצמיתות.')
+    receipt=st.file_uploader('העלי צילום קבלה או PDF',type=['jpg','jpeg','png','pdf'],key='receipt_upload')
+    if receipt is not None:
+        fingerprint=(receipt.name,len(receipt.getvalue()),hash(receipt.getvalue()))
+        if st.session_state.get('ocr_fingerprint')!=fingerprint:
+            with st.spinner('קוראת את הקבלה...'):
+                try:
+                    recognized=receipt_text(receipt)
+                    detected_date,detected_amount=parse_receipt(recognized)
+                    st.session_state.ocr_fingerprint=fingerprint
+                    st.session_state.ocr_date=detected_date or date.today()
+                    st.session_state.ocr_amount=float(detected_amount or 0)
+                    st.session_state.ocr_text=recognized
+                    st.session_state.ocr_success=True
+                except Exception as exc:
+                    st.session_state.ocr_fingerprint=fingerprint
+                    st.session_state.ocr_date=date.today()
+                    st.session_state.ocr_amount=0.0
+                    st.session_state.ocr_text=''
+                    st.session_state.ocr_success=False
+                    st.warning('לא הצלחתי לקרוא את הקבלה אוטומטית. אפשר למלא את הפרטים ידנית.')
+        if st.session_state.get('ocr_success'):
+            st.success('הקריאה הושלמה. בדקי את הפרטים לפני ההוספה.')
+        if st.session_state.get('ocr_text'):
+            with st.expander('טקסט שזוהה מהקבלה — לבדיקת דיוק'):
+                st.text(st.session_state.ocr_text[:5000])
+        with st.form('receipt_form'):
+            description=st.text_input('תיאור ההוצאה',placeholder='למשל: ציוד לבית הספר')
+            purchased=st.date_input('תאריך הקבלה (ניתן לתקן)',value=st.session_state.get('ocr_date',date.today()),format='DD/MM/YYYY')
+            amount=st.number_input('סכום הקבלה (₪) — ניתן לתקן',min_value=0.0,value=float(st.session_state.get('ocr_amount',0.0)),step=1.0,format='%.2f')
+            allocation=st.radio('מי נושא בתשלום?', ['חלוקה שווה 50/50','האב משלם 100%','האם משלמת 100%'])
+            submitted=st.form_submit_button('➕ הוספת קבלה להתחשבנות',type='primary',use_container_width=True)
+        if submitted:
+            if not description.strip():
+                st.error('יש להזין תיאור הוצאה.')
+            elif amount<=0:
+                st.error('יש לוודא שסכום הקבלה גדול מאפס.')
+            else:
+                month=purchased.strftime('%Y-%m')
+                father=round(amount/2,2) if allocation=='חלוקה שווה 50/50' else (round(amount,2) if allocation=='האב משלם 100%' else 0.0)
+                st.session_state.trial_receipts.append({'id':str(uuid.uuid4()),'month':month,'description':description.strip(),'amount':round(amount,2),'allocation':allocation,'father_share':father,'filename':receipt.name,'date':purchased.isoformat()})
+                st.success(f'הקבלה נוספה לחודש {month[5:7]}/{month[:4]}! חלק האב: {money(father)}. ניתן לראות אותה מיד בהתחשבנות.')
+                st.session_state['nav_page']=pages[1]
     st.subheader('קבלות שהוספת בניסוי')
     if not st.session_state.trial_receipts:
         st.caption('אין עדיין קבלות ניסוי.')
@@ -134,7 +211,7 @@ elif page==pages[1]:
                 if st.button('🗑️ מחיקת קבלה',key='delete_'+r['id']):
                     st.session_state.confirm_delete=r['id']
                     st.rerun()
-    st.caption('מחיקה זמינה כאן רק לצורך הדגמה. אין עדיין זיהוי מנהלת או הרשאות מאובטחות.')
+    st.caption('אין עדיין מערכת התחברות: כל מי שניגש לגרסת הניסוי יכול למחוק קבלות בניסוי שלו. אין להעלות קבלות רגישות.')
 
 elif page==pages[2]:
     st.header('התחשבנות חודשית')
