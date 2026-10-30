@@ -28,6 +28,15 @@ h1,h2,h3,p{text-align:right;overflow-wrap:break-word}
 [data-testid="stMetric"]{background:#f7f8fb;border:1px solid #e5e7eb;padding:12px;border-radius:12px;min-width:0}
 [data-testid="stMetricLabel"],[data-testid="stMetricValue"]{overflow-wrap:anywhere}
 @media(max-width:768px){.block-container{padding:1rem .8rem 3rem!important;max-width:100%!important}h1{font-size:1.5rem!important}h2,h3{font-size:1.12rem!important}[data-testid="stHorizontalBlock"]{flex-wrap:wrap!important;gap:.5rem!important}[data-testid="column"]{min-width:calc(50% - .5rem)!important;flex:1 1 calc(50% - .5rem)!important}[data-testid="stMetricValue"]{font-size:1.25rem!important}[data-testid="stDataFrame"]{max-width:100%;overflow-x:auto}}
+
+/* Right-align select controls and their portal menus in Streamlit/BaseWeb. */
+[data-testid="stSelectbox"] {max-width:360px!important;margin-inline-start:0!important;margin-inline-end:auto!important;direction:rtl!important;text-align:right!important;}
+[data-testid="stSelectbox"] > div, [data-testid="stSelectbox"] [data-baseweb="select"], [data-testid="stSelectbox"] [data-baseweb="select"] > div {direction:rtl!important;text-align:right!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"] {direction:rtl!important;text-align:right!important;display:flex!important;flex-direction:row-reverse!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"] > div {text-align:right!important;direction:rtl!important;}
+[data-baseweb="popover"] [role="listbox"], [data-baseweb="popover"] [role="option"], [data-baseweb="menu"] {direction:rtl!important;text-align:right!important;}
+[data-baseweb="popover"] [role="option"] {justify-content:flex-end!important;}
+[data-testid="stVerticalBlock"], [data-testid="stAppViewContainer"] main {direction:rtl!important;}
 </style>''',unsafe_allow_html=True)
 
 DATA_FILE=Path(__file__).with_name('data.json')

@@ -1,8 +1,9 @@
-import io, json, re, uuid, zipfile, html, xml.etree.ElementTree as ET
+import io, json, re, uuid, zipfile, html, base64, xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import quote
 import streamlit as st
+import streamlit.components.v1 as components
 from pyluach import dates, hebrewcal
 
 ROOT = Path(__file__).parent
@@ -239,15 +240,45 @@ def render():
         st.download_button('📎 הורדת קובץ האקסל המקורי ללא שינוי',SOURCE.read_bytes(),file_name='טבלת סידור חגים 2027.xlsx')
     if plan is not None:
         st.subheader('📨 שליחת תוכנית החגים לרועי בוואטסאפ')
-        st.caption('הורידי את קובץ Excel המעודכן כפי שמופיע בטבלה, ושלחי אותו לרועי כקובץ מצורף ב-WhatsApp. אין צורך בהרשמה לאפליקציה.')
+        st.caption('הכיני ושלחי לרועי את קובץ Excel המעודכן, כולל כל השינויים ששמרת. אין צורך בהרשמה.')
+        file_bytes=export_plan_xlsx(plan['rows'],year,plan['revision'])
+        filename=f'horut_holidays_{year}_v{plan["revision"]}.xlsx'
         st.download_button('📊 הורדת תוכנית החגים המעודכנת באקסל',
-            data=export_plan_xlsx(plan['rows'],year,plan['revision']),
-            file_name=f'horut_holidays_{year}_v{plan["revision"]}.xlsx',
+            data=file_bytes, file_name=filename,
             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             use_container_width=True, key=f'xlsx_export_{year}_{plan["revision"]}')
-        approval_text=f'רועי, מצורף קובץ תוכנית החגים לשנת {year}, גרסה {plan["revision"]}, לעיונך ולאישורך. לאחר שתעבור על כל התוכנית, אנא השב לי כאן: אני מאשר את תוכנית החגים לשנת {year}, גרסה {plan["revision"]}. אם יש תיקונים, כתוב לי לפני האישור.'
-        st.link_button('📱 פתיחת WhatsApp לרועי',f'https://wa.me/?text={quote(approval_text,safe="")}',use_container_width=True)
-        st.info('חשוב: WhatsApp לא מאפשר לאתר לצרף קובץ Excel אוטומטית דרך הקישור. לחצי תחילה על הורדת האקסל, פתחי את WhatsApp, בחרי את רועי וצרפי את הקובץ שהורדת באמצעות סמל האטב 📎. ההודעה מכילה בקשת אישור קצרה בלבד, לא את כל הטבלה.')
+        approval_text=(f'רועי, מצורף קובץ תוכנית החגים לשנת {year}, לעיונך ולאישורך. '
+            f'לאחר שתעבור על כל התוכנית, אנא השב:\n'
+            f'✅ אני מאשר את תוכנית החגים לשנת {year} (גרסה {plan["revision"]})\n'
+            f'❌ לא מאשר — השינויים שאני מבקש: __________')
+        # Web Share API: on supported mobile browsers, opens the native share sheet
+        # with both an actual XLSX File and the message. Recipient is chosen by user.
+        # Ordinary WhatsApp links cannot attach a file or create interactive buttons.
+        payload=base64.b64encode(file_bytes).decode('ascii')
+        component_html=f"""<!doctype html><html lang='he' dir='rtl'><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>
+        <body style='margin:0;font-family:Arial,sans-serif;direction:rtl'>
+        <button id='share' style='width:100%;padding:13px;background:#128C7E;border:0;border-radius:9px;color:white;font-size:16px;cursor:pointer'>📲 שיתוף קובץ האקסל והודעת האישור בוואטסאפ</button>
+        <div id='status' style='font-size:13px;color:#555;padding-top:7px'></div>
+        <script>
+        const base64={json.dumps(payload)},filename={json.dumps(filename)},message={json.dumps(approval_text)};
+        document.getElementById('share').addEventListener('click',async()=>{{
+          const status=document.getElementById('status');
+          try{{
+            const binary=atob(base64), bytes=new Uint8Array(binary.length);
+            for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+            const file=new File([bytes],filename,{{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}});
+            if(!navigator.share || !navigator.canShare || !navigator.canShare({{files:[file]}})){{
+              status.textContent='המכשיר או הדפדפן אינם תומכים בשיתוף קובץ ישיר. הורידי את האקסל למעלה וצרפי אותו בוואטסאפ.';return;
+            }}
+            await navigator.share({{files:[file],text:message}});
+            status.textContent='חלונית השיתוף נפתחה. ודאי שנבחר WhatsApp ורועי כנמען, ושהקובץ מצורף.';
+          }}catch(e){{if(e.name!=='AbortError')status.textContent='השיתוף לא הושלם. ניתן להוריד את הקובץ ולצרף אותו ידנית בוואטסאפ.';}}
+        }});
+        </script></body></html>"""
+        components.html(component_html,height=91,scrolling=False)
+        st.link_button('💬 פתיחת הודעה מוכנה בוואטסאפ (ללא קובץ מצורף)',
+            f'https://wa.me/?text={quote(approval_text,safe="")}',use_container_width=True)
+        st.info('במכשירים תומכים, כפתור השיתוף פותח את חלונית השיתוף עם קובץ האקסל וההודעה. יש לבחור WhatsApp ואת רועי. אם לא נתמך, הורידי את הקובץ וצרפי אותו ידנית. כפתורי אישור/דחייה אינטראקטיביים בתוך WhatsApp דורשים WhatsApp Business Platform ואינם זמינים דרך קישור WhatsApp רגיל; רועי יוכל להשיב ✅ או ❌ ולפרט תיקונים בשיחה.')
         if st.button('🔄 הכנת גרסה חדשה לשליחה חוזרת',key=f'whatsapp_resend_{year}'):
             plan['revision']+=1
             plan['status']='draft'
