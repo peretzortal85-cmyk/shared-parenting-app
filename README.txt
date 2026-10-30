@@ -1,0 +1,1 @@
+גרסה 8 — OCR לקבצי JPG/PNG/PDF. העלי את app.py, data.json, requirements.txt, packages.txt לשורש המאגר ב-GitHub. לאחר Commit, Streamlit Cloud יתקין את חבילות Python ואת Tesseract. המתיני לעדכון. זיהוי התאריך והסכום דורש אישור ידני; שמירת הקבלות זמנית ב-session בלבד ואינה בסיס נתונים קבוע. אין הרשאות משתמשים; אין להעלות קבלות רגישות.
